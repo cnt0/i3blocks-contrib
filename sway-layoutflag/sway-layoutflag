@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+parse_flags='split(",") | map(explode | map(. + 127365) | implode)'
+flags="$( jq --raw-input "$parse_flags" <<< "$flags" )"
+jq -nr --argjson flags "$flags" '$flags[0]'
+
+# shellcheck disable=SC1087
+query="select(.change == \"xkb_layout\") | $flags[.input.xkb_active_layout_index]"
+swaymsg -m -t SUBSCRIBE "['input']" | \
+jq -r --unbuffered --argjson flags "$flags" "$query"
+
